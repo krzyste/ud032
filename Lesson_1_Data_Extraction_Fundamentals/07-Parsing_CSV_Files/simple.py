@@ -9,16 +9,20 @@
 # so the returned list should have 10 entries!
 import os
 
-DATADIR = ""
+DATADIR = os.getcwd()
 DATAFILE = "beatles-diskography.csv"
 
 
 def parse_file(datafile):
     data = []
-    with open(datafile, "rb") as f:
-        for line in f:
-            print line
-
+    columnNames = []
+    with open(datafile, "r") as f:
+        lines = f.readlines()
+        columnNames = lines[0].strip().split(",")
+        for line in lines[1:11]:
+            line = line.rstrip().split(",")
+            tmpDict = dict(zip(columnNames,line))
+            data.append(tmpDict)
     return data
 
 
