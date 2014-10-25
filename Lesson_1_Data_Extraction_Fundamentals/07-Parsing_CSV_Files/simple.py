@@ -8,10 +8,18 @@
 # You have to parse only the first 10 data lines in this exercise,
 # so the returned list should have 10 entries!
 import os
+import csv
 
 DATADIR = os.getcwd()
 DATAFILE = "beatles-diskography.csv"
 
+def parse_csv(datafile):
+    data = []
+    with open(datafile, "r") as f:
+        f_csv = csv.DictReader(f)
+        for line in f_csv:
+            data.append(line)
+    return data
 
 def parse_file(datafile):
     data = []
@@ -30,11 +38,14 @@ def test():
     # a simple test of your implemetation
     datafile = os.path.join(DATADIR, DATAFILE)
     d = parse_file(datafile)
+    d1 = parse_csv(datafile)
     firstline = {'Title': 'Please Please Me', 'UK Chart Position': '1', 'Label': 'Parlophone(UK)', 'Released': '22 March 1963', 'US Chart Position': '-', 'RIAA Certification': 'Platinum', 'BPI Certification': 'Gold'}
     tenthline = {'Title': '', 'UK Chart Position': '1', 'Label': 'Parlophone(UK)', 'Released': '10 July 1964', 'US Chart Position': '-', 'RIAA Certification': '', 'BPI Certification': 'Gold'}
 
     assert d[0] == firstline
     assert d[9] == tenthline
+    assert d1[0] == firstline
+    assert d1[9] == tenthline
 
     
 test()
