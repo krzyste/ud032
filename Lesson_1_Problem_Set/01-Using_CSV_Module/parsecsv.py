@@ -16,16 +16,18 @@ You should only change the parse_file function.
 import csv
 import os
 
-DATADIR = ""
+DATADIR = os.getcwd() + "\\"
 DATAFILE = "745090.csv"
 
 
 def parse_file(datafile):
     name = ""
     data = []
-    with open(datafile,'rb') as f:
-        pass
-    # Do not change the line below
+    with open(datafile, 'rb') as f:
+        f_csv = csv.reader(f)
+        name = f_csv.next()[1]
+        header = f_csv.next()
+        data = [line for line in f_csv]
     return (name, data)
 
 
