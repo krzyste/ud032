@@ -19,18 +19,26 @@ def open_zip(datafile):
 def parse_file(datafile):
     workbook = xlrd.open_workbook(datafile)
     sheet = workbook.sheet_by_index(0)
-    data = None
-    # YOUR CODE HERE
-    # Remember that you can use xlrd.xldate_as_tuple(sometime, 0) to convert
-    # Excel date to Python tuple of (year, month, day, hour, minute, second)
+    data = [["Station", "Year", "Month", "Day", "Hour", "Max Load"]]
+    sheetDataInColumns = [[sheet.cell_value(r, col) for r in range(sheet.nrows)] for col in range(sheet.ncols)]
+    
+    for i in range(1, 9):
+        _name = sheetDataInColumns[i][0]
+        _maxValue = max(sheetDataInColumns[i][1:])
+        _maxTime = xlrd.xldate_as_tuple(sheetDataInColumns[0][sheetDataInColumns[i].index(_maxValue)], 0)
+        data.append([_name] + list(_maxTime)[:4] + [_maxValue])
     return data
 
-def save_file(data, filename):
-    # YOUR CODE HERE
 
-    
+def save_file(data, filename):
+    with open(filename, 'wb') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter='|')
+        for row in data:
+            spamwriter.writerow(row)
+       
+        
 def test():
-    open_zip(datafile)
+    # open_zip(datafile)
     data = parse_file(datafile)
     save_file(data, outfile)
 
