@@ -36,10 +36,13 @@ def get_from_file(kind, period):
 
 def article_overview(kind, period):
     data = get_from_file(kind, period)
-    titles = []
-    urls =[]
-    # YOUR CODE HERE
-
+    urls, titles = [], []
+    for _articleDict in data:
+        titles.append({_articleDict["section"]: _articleDict["title"]})
+        for _mediaDict in _articleDict["media"]:
+            for _mediaMetadataDict in _mediaDict["media-metadata"]:                
+                if _mediaMetadataDict["format"] == "Standard Thumbnail":
+                    urls.append(_mediaMetadataDict["url"])
     return (titles, urls)
 
 
@@ -53,7 +56,7 @@ def query_site(url, target, offset):
         print "See Intructor notes for information"
         return False
     params = {"api-key": API_KEY[target], "offset": offset}
-    r = requests.get(url, params = params)
+    r = requests.get(url, params=params)
 
     if r.status_code == requests.codes.ok:
         return r.json()
@@ -64,7 +67,7 @@ def query_site(url, target, offset):
 def get_popular(url, kind, days, section="all-sections", offset=0):
     # This function will construct the query according to the requirements of the site
     # and return the data, or print an error message if called incorrectly
-    if days not in [1,7,30]:
+    if days not in [1, 7, 30]:
         print "Time period can be 1,7, 30 days only"
         return False
     if kind not in ["viewed", "shared", "emailed"]:
