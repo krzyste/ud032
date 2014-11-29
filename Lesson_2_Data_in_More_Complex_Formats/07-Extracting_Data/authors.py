@@ -23,7 +23,10 @@ def get_authors(root):
                 "email": None
         }
 
-        # YOUR CODE HERE
+        for elem in author:
+            for key in data.iterkeys():
+                if elem.tag == key:
+                    data[key] = elem.text
 
         authors.append(data)
 
