@@ -10,9 +10,13 @@ html_page = "options.html"
 def extract_airports(page):
     data = []
     with open(page, "r") as html:
-        # do something here to find the necessary values
         soup = BeautifulSoup(html)
 
+        _airports = soup.find(id="AirportList")
+        for _option in  _airports.find_all("option"):
+            _value = _option["value"]
+            if not _value.startswith("All"):
+                data.append(_value)
     return data
 
 
