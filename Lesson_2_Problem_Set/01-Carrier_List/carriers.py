@@ -17,9 +17,13 @@ def extract_carriers(page):
     data = []
 
     with open(page, "r") as html:
-        # do something here to find the necessary values
         soup = BeautifulSoup(html)
 
+        _carriers = soup.find(id="CarrierList")
+        for _option in  _carriers.find_all("option"):
+            _value = _option["value"]
+            if not _value.startswith("All"):
+                data.append(_value)
     return data
 
 
