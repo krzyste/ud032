@@ -55,17 +55,23 @@ def process_file(f):
     data = []
     info = {}
     info["courier"], info["airport"] = f[:6].split("-")
-    
     with open("{}/{}".format(datadir, f), "r") as html:
-
-        soup = BeautifulSoup(html)
-
+        soup = BeautifulSoup(html)        
+        _table = soup.find(id="DataGrid1")
+        for _tr in _table.findAll("tr")[1:]:
+            _allTd = _tr.findAll("td")
+            if "TOTAL" not in _allTd[1].text:
+                _year, _month, _domestic, _international, _ = [int(i.text.replace(",","")) if str(i.text.replace(",","")).isdigit() else 0 for i in _allTd]
+                info["year"] = _year
+                info["month"] = _month
+                info["flights"] = {"domestic": _domestic, "international": _international}
+                data.append(info.copy())
     return data
 
 
 def test():
     print "Running a simple test..."
-    open_zip(datadir)
+    #open_zip(datadir)
     files = process_all(datadir)
     data = []
     for f in files:
