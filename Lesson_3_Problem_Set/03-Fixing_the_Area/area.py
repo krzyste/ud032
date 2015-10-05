@@ -16,16 +16,33 @@ import codecs
 import csv
 import json
 import pprint
+import re
 
 CITIES = 'cities.csv'
 
 
-def fix_area(area):
+def more_significant_number(nums):
+    max_no_of_digits = (0, 0)
+    for i, num in enumerate(nums):
+        match = re.match("^\d+\.(?P<after_dot>.*)e.*", num)
+        tmp = len(match.group("after_dot"))
+        if tmp > max_no_of_digits[1]:
+            max_no_of_digits = (i, tmp)
+    return max_no_of_digits[0]
 
-    # YOUR CODE HERE
+
+def fix_area(area):
+    is_list = re.match("^\{(?P<n1>.*)\|(?P<n2>.*)}", area)
+    if is_list:
+        numbers = (is_list.group("n1"), is_list.group("n2"))
+        n = more_significant_number(numbers)
+        area = float(numbers[n])
+    elif area == "NULL":
+        return None
+    else:
+        return float(area)
 
     return area
-
 
 
 def process_file(filename):
