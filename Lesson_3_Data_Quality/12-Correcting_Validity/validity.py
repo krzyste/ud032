@@ -13,37 +13,53 @@ The following things should be done:
 - you should use the provided way of reading and writing data (DictReader and DictWriter)
   They will take care of dealing with the header.
 
-You can write helper functions for checking the data and writing the files, but we will call only the 
+You can write helper functions for checking the data and writing the files, but we will call only the
 'process_file' with 3 arguments (inputfile, output_good, output_bad).
 """
 import csv
-import pprint
+import re
 
 INPUT_FILE = 'autos.csv'
 OUTPUT_GOOD = 'autos-valid.csv'
 OUTPUT_BAD = 'FIXME-autos.csv'
 
+patterns = {"URI": ".*dbpedia\.org.*",
+            "Date": "^(?P<year>\d{4})\-.*"}
+
+
 def process_file(input_file, output_good, output_bad):
+    good_lst = []
+    bad_lst = []
 
     with open(input_file, "r") as f:
         reader = csv.DictReader(f)
         header = reader.fieldnames
+        for line in reader:
+            if re.match(patterns["URI"], line["URI"]):
+                date_match = re.match(patterns["Date"], line["productionStartYear"])
+                if date_match:
+                    year = date_match.group("year")
+                    if 1886 <= int(year) <= 2014:
+                        line["productionStartYear"] = year
+                        good_lst.append(line)
+                    else:
+                        bad_lst.append(line)
+                else:
+                    bad_lst.append(line)
 
-        #COMPLETE THIS FUNCTION
-
-
-
-    # This is just an example on how you can use csv.DictWriter
-    # Remember that you have to output 2 files
     with open(output_good, "w") as g:
-        writer = csv.DictWriter(g, delimiter=",", fieldnames= header)
+        writer = csv.DictWriter(g, delimiter=",", fieldnames=header)
         writer.writeheader()
-        for row in YOURDATA:
+        for row in good_lst:
+            writer.writerow(row)
+    with open(output_bad, "w") as g:
+        writer = csv.DictWriter(g, delimiter=",", fieldnames=header)
+        writer.writeheader()
+        for row in bad_lst:
             writer.writerow(row)
 
 
 def test():
-
     process_file(INPUT_FILE, OUTPUT_GOOD, OUTPUT_BAD)
 
 
