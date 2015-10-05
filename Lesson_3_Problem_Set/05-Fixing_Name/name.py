@@ -15,13 +15,19 @@ The rest of the code is just an example on how this function can be used
 import codecs
 import csv
 import pprint
+import re
 
 CITIES = 'cities.csv'
 
 
 def fix_name(name):
-
-    # YOUR CODE HERE
+    is_list = re.match("^\{(?P<n1>.*)\|(?P<n2>.*)}", name)
+    if is_list:
+        name = [is_list.group("n1"), is_list.group("n2")]
+    elif name == "NULL":
+        name = []
+    else:
+        name = [name]
 
     return name
 
