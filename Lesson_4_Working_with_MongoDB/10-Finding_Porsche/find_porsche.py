@@ -11,18 +11,22 @@ For instructions related to MongoDB setup and datasets please see Course Materia
 the following link:
 https://www.udacity.com/wiki/ud032
 """
+import json
+import pprint
+from pymongo import MongoClient
 
 
 def get_db(db_name):
-    from pymongo import MongoClient
     client = MongoClient('localhost:27017')
+    client.drop_database("examples")
     db = client[db_name]
     return db
 
 
 def porsche_query():
     # Please fill in the query to find all autos manuafactured by Porsche
-    query = {}
+    query = {"manufacturer": "Porsche"}
+
     return query
 
 
@@ -31,8 +35,10 @@ def find_porsche(db, query):
 
 
 if __name__ == "__main__":
-
     db = get_db('examples')
+    db.autos.insert(json.load(open("example_car.json", "r")))
     query = porsche_query()
     p = find_porsche(db, query)
-    import pprint
+
+    for doc in p:
+        pprint.pprint(doc)
