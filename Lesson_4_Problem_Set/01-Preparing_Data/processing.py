@@ -37,23 +37,70 @@ import csv
 import json
 import pprint
 import re
+import string
+import types
 
 DATAFILE = 'arachnid.csv'
-FIELDS ={'rdf-schema#label': 'label',
-         'URI': 'uri',
-         'rdf-schema#comment': 'description',
-         'synonym': 'synonym',
-         'name': 'name',
-         'family_label': 'family',
-         'class_label': 'class',
-         'phylum_label': 'phylum',
-         'order_label': 'order',
-         'kingdom_label': 'kingdom',
-         'genus_label': 'genus'}
+FIELDS = {'rdf-schema#label': 'label',
+          'URI': 'uri',
+          'rdf-schema#comment': 'description',
+          'synonym': 'synonym',
+          'name': 'name',
+          'family_label': 'family',
+          'class_label': 'class',
+          'phylum_label': 'phylum',
+          'order_label': 'order',
+          'kingdom_label': 'kingdom',
+          'genus_label': 'genus'}
 
+
+def update_line(dic):
+    ret_dic = {}
+    for key in dic.keys():
+        if key in FIELDS:
+            ret_dic.update({FIELDS[key]: dic[key]})
+    return ret_dic
+
+
+def remove_redundant_label(line_):
+    match = re.match("(?P<label>.*) \(.*\)", line_["label"])
+    if match:
+        line_["label"] = match.group("label")
+    return line_
+
+
+def correct_name(line_):
+    if line_["name"] == "NULL" or any([s in string.punctuation for s in line_["name"]]):
+        line_["name"] = line_["label"]
+    return line_
+
+
+def remove_nulls(line_):
+    for key, value in line_.iteritems():
+        if value == "NULL":
+            line_[key] = None
+    return line_
+
+
+def create_synonym_array(line_):
+    if line_['synonym']:
+        line_['synonym'] = parse_array(line_['synonym'])
+    return line_
+
+
+def strip_fields(line_):
+    for key, value in line_.iteritems():
+        if isinstance(value, types.StringType):
+            line_[key] = line_[key].strip()
+    return line_
+
+def update_structure(line_):
+    line_['classification'] = {}
+    for key in ['family', 'class', 'phylum', 'order', 'kingdom', 'genus']:
+        line_['classification'].update({key: line_.pop(key)})
+    return line_
 
 def process_file(filename, fields):
-
     process_fields = fields.keys()
     data = []
     with open(filename, "r") as f:
@@ -62,8 +109,16 @@ def process_file(filename, fields):
             l = reader.next()
 
         for line in reader:
-            # YOUR CODE HERE
-            pass
+            line = update_line(line)
+            line = remove_redundant_label(line)
+            line = correct_name(line)
+            line = remove_nulls(line)
+            line = create_synonym_array(line)
+            line = strip_fields(line)
+            line = update_structure(line)
+
+            data.append(line)
+
     return data
 
 
@@ -72,7 +127,7 @@ def parse_array(v):
         v = v.lstrip("{")
         v = v.rstrip("}")
         v_array = v.split("|")
-        v_array = [i.strip() for i in v_array]
+        v_array = [i.replace("*", "").strip() for i in v_array]
         return v_array
     return [v]
 
@@ -82,18 +137,18 @@ def test():
 
     pprint.pprint(data[0])
     assert data[0] == {
-                        "synonym": None, 
-                        "name": "Argiope", 
+                        "synonym": None,
+                        "name": "Argiope",
                         "classification": {
-                            "kingdom": "Animal", 
-                            "family": "Orb-weaver spider", 
-                            "order": "Spider", 
-                            "phylum": "Arthropod", 
-                            "genus": None, 
+                            "kingdom": "Animal",
+                            "family": "Orb-weaver spider",
+                            "order": "Spider",
+                            "phylum": "Arthropod",
+                            "genus": None,
                             "class": "Arachnid"
-                        }, 
-                        "uri": "http://dbpedia.org/resource/Argiope_(spider)", 
-                        "label": "Argiope", 
+                        },
+                        "uri": "http://dbpedia.org/resource/Argiope_(spider)",
+                        "label": "Argiope",
                         "description": "The genus Argiope includes rather large and spectacular spiders that often have a strikingly coloured abdomen. These spiders are distributed throughout the world. Most countries in tropical or temperate climates host one or more species that are similar in appearance. The etymology of the name is from a Greek name meaning silver-faced."
                     }
 
