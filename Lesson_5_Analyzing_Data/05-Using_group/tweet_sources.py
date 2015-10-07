@@ -11,7 +11,7 @@ that can be passed to the MongoDB aggregate function. As in our examples in this
 pipeline should be a list of one or more dictionary objects. 
 Please review the lesson examples if you are unsure of the syntax.
 
-Your code will be run against a MongoDB instance that we have provided. 
+Your code will be run against a MongoDB instance that we have provided.
 If you want to run this code locally on your machine, you have to install MongoDB, 
 download and insert the dataset.
 For instructions related to MongoDB setup and datasets please see Course Materials.
@@ -31,7 +31,8 @@ def get_db(db_name):
 
 def make_pipeline():
     # complete the aggregation pipeline
-    pipeline = []
+    pipeline = [{"$group": {"_id": "$source", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}}]
     return pipeline
 
 def tweet_sources(db, pipeline):
@@ -39,7 +40,7 @@ def tweet_sources(db, pipeline):
     return result
 
 if __name__ == '__main__':
-    db = get_db('twitter')
+    db = get_db('examples')
     pipeline = make_pipeline()
     result = tweet_sources(db, pipeline)
     import pprint
