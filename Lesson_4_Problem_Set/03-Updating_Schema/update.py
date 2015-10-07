@@ -9,10 +9,10 @@ The data is already in the database. But you have been given a task to also incl
 information in the data, so you have to go through the data and update the existing entries.
 
 The following things should be done in the function add_field:
-- process the csv file and extract 2 fields - 'rdf-schema#label' and 'binomialAuthority_label'
-- clean up the 'rdf-schema#label' same way as in the first exercise - removing redundant "(spider)" suffixes
-- return a dictionary, with 'label' being the key, and 'binomialAuthority_label' the value
-- if 'binomialAuthority_label' is "NULL", skip the item
++- process the csv file and extract 2 fields - 'rdf-schema#label' and 'binomialAuthority_label'
++- clean up the 'rdf-schema#label' same way as in the first exercise - removing redundant "(spider)" suffixes
++- return a dictionary, with 'label' being the key, and 'binomialAuthority_label' the value
++- if 'binomialAuthority_label' is "NULL", skip the item
 
 The following should be done in the function update_db:
 - query the database by using the field 'label'
@@ -41,28 +41,55 @@ import codecs
 import csv
 import json
 import pprint
+import re
 
 DATAFILE = 'arachnid.csv'
-FIELDS ={'rdf-schema#label': 'label',
-         'binomialAuthority_label': 'binomialAuthority'}
+FIELDS = {'rdf-schema#label': 'label',
+          'binomialAuthority_label': 'binomialAuthority'}
+
+
+def update_line(dic):
+    ret_dic = {}
+    for key in dic.keys():
+        if key in FIELDS:
+            ret_dic.update({FIELDS[key]: dic[key]})
+    return ret_dic
+
+
+def remove_redundant_label(line_):
+    match = re.match("(?P<label>.*) \(.*\)", line_["label"])
+    if match:
+        line_["label"] = match.group("label")
+    return line_
+
+
+def transform_line(line_):
+    if line_["binomialAuthority"] != "NULL":
+        return {line_["label"]: line_["binomialAuthority"]}
+    else:
+        return {line_["label"]: None}
 
 
 def add_field(filename, fields):
-
     process_fields = fields.keys()
-    data = {}
+    data = []
     with open(filename, "r") as f:
         reader = csv.DictReader(f)
         for i in range(3):
             l = reader.next()
-        # YOUR CODE HERE
-
+        for line in reader:
+            line = update_line(line)
+            line = remove_redundant_label(line)
+            line = transform_line(line)
+            if line:
+                data.append(line)
     return data
 
 
 def update_db(data, db):
-    # YOUR CODE HERE
-    pass
+    for entry in data:
+        db.arachnid.update({"label": entry.keys()[0]},
+                           {"$set": {"classification.binomialAuthority": entry.values()[0]}})
 
 
 def test():
@@ -70,9 +97,10 @@ def test():
     # Changes done to this function will not be taken into account
     # when doing a Test Run or Submit, they are just for your own reference
     # and as an example for running this code locally!
-    
+
     data = add_field(DATAFILE, FIELDS)
     from pymongo import MongoClient
+
     client = MongoClient("mongodb://localhost:27017")
     db = client.examples
 
@@ -81,7 +109,6 @@ def test():
     updated = db.arachnid.find_one({'label': 'Opisthoncana'})
     assert updated['classification']['binomialAuthority'] == 'Embrik Strand'
     pprint.pprint(data)
-
 
 
 if __name__ == "__main__":
