@@ -32,7 +32,11 @@ def get_db(db_name):
 
 def make_pipeline():
     # complete the aggregation pipeline
-    pipeline = [ ]
+    pipeline = [{"$unwind": "$isPartOf"},
+                {"$group": {"_id": {"isPartOf":"$isPartOf", "country": "$country"},
+                            "avg_reg": {"$avg": "$population"}}},
+                {"$group": {"_id": "$_id.country",
+                            "avgRegionalPopulation": {"$avg": "$avg_reg"}}}]
     return pipeline
 
 def aggregate(db, pipeline):
@@ -43,11 +47,9 @@ if __name__ == '__main__':
     db = get_db('examples')
     pipeline = make_pipeline()
     result = aggregate(db, pipeline)
-    import pprint
-    if len(result["result"]) < 150:
-        pprint.pprint(result["result"])
+    for record in result:
+        if record["_id"] == 'Kuwait':
+            assert record["avgRegionalPopulation"] == 115945.66666666667
+            break
     else:
-        pprint.pprint(result["result"][:100])
-    assert result["result"][0]["_id"] == 'Kuwait'
-    assert result["result"][1]["avgRegionalPopulation"] == 363945.0
-    assert result["result"][0] == {'_id': 'Kuwait', 'avgRegionalPopulation': 115945.66666666667}
+        raise AssertionError("Kuwait record not found")
